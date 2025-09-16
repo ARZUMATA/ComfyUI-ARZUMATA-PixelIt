@@ -44,6 +44,7 @@ class PixelIt:
             'convert_palette': convert_palette,
             'reduce_colors': reduce_colors,
             'colors': colors,
+            'palette_preset': palette_preset,
             'block_size': block_size,
             'target_block_size_resize': target_block_size_resize,
             'target_block_size': target_block_size,

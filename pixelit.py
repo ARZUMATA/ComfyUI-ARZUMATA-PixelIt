@@ -228,15 +228,37 @@ class Pixelit:
         self.max_height = config.get('maxHeight')
         self.max_width = config.get('maxWidth')
 
-        self.currentPalette = 1
+        self.currentPalette = 0
 
         # Store color stats
         self.end_color_stats = {}
 
+    # Handle palette preset if provided and conversion is enabled
+        palette_preset = config.get('palette_preset', None)
+        if self.convert_palette and palette_preset:
+            self.set_palette_by_name(palette_preset)
+
+    def set_palette_index(self, index):
+        """Set the active palette by index."""
+        if 0 <= index < len(PALETTE_LIST):
+            self.currentPalette = index
+        else:
+            raise ValueError(f"Palette index must be between 0 and {len(PALETTE_LIST) - 1}")
+        return self
+    
+    def set_palette_by_name(self, name):
+        """Set the active palette by its name."""
+        try:
+            index = PALETTE_NAMES.index(name)
+            self.currentPalette = index
+            return self
+        except ValueError:
+            raise ValueError(f"Palette '{name}' not found. Available: {PALETTE_NAMES}")
+        
     def set_scale(self):
-        # Calculate scale from block_size if provided
-        if self.block_size:
-            self.scale = 1 / self.block_size
+        """Set scale = block_size / 100 to"""
+        self.scale = max(0.01, min(0.5, self.block_size / 100.0))
+        return self
 
     def convert_to_grayscale(self):
         # Convert to grayscale
@@ -337,6 +359,9 @@ class Pixelit:
         # Convert tensor from B,H,W,C to RGB PIL Image
         # Assuming first batch only
         image_array = image_tensor[0].numpy()
+
+        # Ensure [0,1]
+        image_array = np.clip(image_tensor[0].numpy(), 0, 1)
         
         # Convert to uint8 if needed and ensure RGB
         if image_array.dtype != np.uint8:
@@ -432,13 +457,13 @@ class Pixelit:
 
     def similar_color(self, actual_color):
         # Initialize 'selected_color' with the first color in the current palette
-        selected_color = self.paletteList[self.currentPalette][0]
+        selected_color = PALETTE_LIST[self.currentPalette][0]
 
         # Calculate the similarity between 'actual_color' and the first color in the palette
-        current_sim = self.color_sim(actual_color, self.paletteList[self.currentPalette][0])
+        current_sim = self.color_sim(actual_color, PALETTE_LIST[self.currentPalette][0])
         
         # Iterate over each color in the current palette
-        for color in self.paletteList[self.currentPalette]:
+        for color in PALETTE_LIST[self.currentPalette]:
             # Calculate the similarity between 'actual_color' and the next color in the palette
             next_color = self.color_sim(actual_color, color)
 
@@ -451,7 +476,7 @@ class Pixelit:
         # Return the color in the palette that is most similar to 'actual_color'
         return selected_color
 
-    def color_sim(self, rgb_color, compare_color):
+    def color_sim_slow(self, rgb_color, compare_color):
         # Initialize a variable 'd' to store the sum of squared differences
         d = 0
         
@@ -465,3 +490,8 @@ class Pixelit:
         
         # Return the Euclidean distance, which is the square root of 'd'
         return np.sqrt(d)
+    
+    def color_sim(self, rgb_color, compare_color):
+        # Compute Euclidean distance using safe numeric type
+        diff = np.array(rgb_color, dtype=np.float64) - np.array(compare_color, dtype=np.float64)
+        return np.sqrt(np.sum(diff ** 2))
