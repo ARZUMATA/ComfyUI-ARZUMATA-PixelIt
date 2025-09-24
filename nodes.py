@@ -1,6 +1,8 @@
 from .pixelit import Pixelit as pxlt
-from .pixelit import PALETTE_NAMES, PALETTE_LIST
 import torch
+
+# Import combined palette list
+from .palettes import PALETTE_NAMES
 
 class PixelIt:
     @classmethod
