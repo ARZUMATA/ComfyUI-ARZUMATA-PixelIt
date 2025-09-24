@@ -2,7 +2,7 @@ from .pixelit import Pixelit as pxlt
 import torch
 
 # Import combined palette list
-from .palettes import PALETTE_NAMES
+from .palettes import PALETTE_LIST, PALETTE_NAMES
 
 class PixelIt:
     @classmethod
@@ -10,16 +10,9 @@ class PixelIt:
         return {
             "required": {
                 "image": ("IMAGE",),
-                "block_size": ("INT", {"default": 8, "min": 1, "max": 256, "step": 1}),
+                "downscale_ratio": ("INT", {"default": 8, "min": 1, "max": 256, "step": 1}),
                 "target_block_size_resize": ("BOOLEAN", {"default": False}),
                 "target_block_size": ("INT", {"default": 8, "min": 1, "max": 256, "step": 1}),
-                "grid": ("BOOLEAN", {"default": False}),
-                "grid_alpha": ("INT", {"default": 255, "min": 0, "max": 255, "step": 1}),
-                "reduce_colors": ("BOOLEAN", {"default": False}),
-                "colors": ("INT", {"default": 32, "min": 1, "max": 256, "step": 1}),
-                "palette_preset": (["none"] + PALETTE_NAMES, {"default": "none"},),
-                "convert_grayscale": ("BOOLEAN", {"default": False}),
-                "convert_palette": ("BOOLEAN", {"default": False}),
                 "auto_collapse_blocks": ("BOOLEAN", {"default": False}),
                 "compensate_collapse": ("BOOLEAN", {"default": False}),
                 "block_detection_tolerance": ("FLOAT", {
@@ -30,6 +23,13 @@ class PixelIt:
                     "display": "number"
                 }),
                 "detect_jpg": ("BOOLEAN", {"default": True},),
+                "grid": ("BOOLEAN", {"default": False}),
+                "grid_alpha": ("INT", {"default": 255, "min": 0, "max": 255, "step": 1}),
+                "reduce_colors": ("BOOLEAN", {"default": False}),
+                "colors": ("INT", {"default": 32, "min": 1, "max": 256, "step": 1}),
+                "convert_grayscale": ("BOOLEAN", {"default": False}),
+                "convert_palette": ("BOOLEAN", {"default": False}),
+                "palette_preset": (["none"] + PALETTE_NAMES, {"default": "none"},),
             }
         }
 
@@ -39,37 +39,38 @@ class PixelIt:
 
     def pixelit(self, 
                 image: torch.Tensor,
-                convert_grayscale: bool,
-                convert_palette: bool,
-                reduce_colors: bool,
-                colors: int,
-                palette_preset: str,
-                block_size: int,
+                downscale_ratio: int,
                 target_block_size_resize: bool,
                 target_block_size: int,
-                grid: bool,
-                grid_alpha: int,
                 auto_collapse_blocks: bool,
                 compensate_collapse: bool,
                 block_detection_tolerance: float,
-                detect_jpg: bool):
+                detect_jpg: bool,
+                grid: bool,
+                grid_alpha: int,
+                reduce_colors: bool,
+                colors: int,
+                convert_grayscale: bool,
+                convert_palette: bool,
+                palette_preset: str,
+                ):
         
         # Build config
         config = {
-            'convert_grayscale': convert_grayscale,
-            'convert_palette': convert_palette,
-            'reduce_colors': reduce_colors,
-            'colors': colors,
-            'palette_preset': palette_preset,
-            'block_size': block_size,
+            'downscale_ratio': downscale_ratio,
             'target_block_size_resize': target_block_size_resize,
             'target_block_size': target_block_size,
-            'grid': grid,
-            'grid_alpha': grid_alpha,
             'auto_collapse_blocks': auto_collapse_blocks,
             'compensate_collapse': compensate_collapse,
             'block_detection_tolerance': block_detection_tolerance,
             'detect_jpg': detect_jpg,
+            'grid': grid,
+            'grid_alpha': grid_alpha,
+            'reduce_colors': reduce_colors,
+            'colors': colors,
+            'convert_grayscale': convert_grayscale,
+            'convert_palette': convert_palette,
+            'palette_preset': palette_preset,
         }
         
         # Add palette if selected

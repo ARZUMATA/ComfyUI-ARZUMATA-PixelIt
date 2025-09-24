@@ -5,7 +5,12 @@ from PIL import ImageDraw, ImageOps
 from PIL import ImageFilter
 
 # Import combined palette list
-from .palettes import PALETTE_LIST, PALETTE_NAMES
+# Handle import depending on how it's run
+try:
+    from .palettes import PALETTE_LIST, PALETTE_NAMES
+except ImportError:
+    # Fallback for running standalone (e.g. testing)
+    from palettes import PALETTE_LIST, PALETTE_NAMES
 
 class Pixelit:
     def __init__(self, config=None):
@@ -24,18 +29,6 @@ class Pixelit:
         # Target image
         self.image_target = None
         
-        # Do grayscale conversion
-        self.convert_grayscale = config.get('convert_grayscale', False)
-
-        # Do palette conversion
-        self.convert_palette = config.get('convert_palette', False)
-
-        # Reduce colors
-        self.reduce_colors = config.get('reduce_colors', False)
-
-        # Colors amount
-        self.colors = config.get('colors', None)
-
         # Add downscale ratio for image to bne 1/n size
         self.downscale_ratio = config.get('downscale_ratio', 8)
 
@@ -44,26 +37,6 @@ class Pixelit:
 
         # Add target_block_size parameter
         self.target_block_size = config.get('target_block_size', 8)
-
-        # Draw grid
-        self.grid = config.get('grid', False)
-
-        # Grid alpha
-        self.grid_alpha = config.get('grid_alpha', 255)
-
-        # If block_size is provided, calculate scale based on image dimensions
-        if self.downscale_ratio:
-            # Scale will be set when image is loaded
-            self.scale = None
-
-        # Max width and height
-        self.max_height = config.get('maxHeight')
-        self.max_width = config.get('maxWidth')
-
-        self.currentPalette = 0
-
-        # Store color stats
-        self.end_color_stats = {}
 
         #  Collapse blocks to single pixel
         self.auto_collapse_blocks = config.get('auto_collapse_blocks', False)
@@ -75,13 +48,33 @@ class Pixelit:
         self.block_detection_tolerance = config.get('block_detection_tolerance', 15.0)
         self.block_detection_tolerance = max(0.0, min(50.0, self.block_detection_tolerance))  # Clamp 0–50
 
+        # If we want to detect JPG and increase tolerance due to artifacts
+        self.detect_jpg = config.get('detect_jpg', False)
+
+        # Draw grid
+        self.grid = config.get('grid', False)
+
+        # Grid alpha
+        self.grid_alpha = config.get('grid_alpha', 255)
+
+        # Reduce colors
+        self.reduce_colors = config.get('reduce_colors', False)
+
+        # Colors amount
+        self.colors = config.get('colors', None)
+
+        # Do grayscale conversion
+        self.convert_grayscale = config.get('convert_grayscale', False)
+
+        # Do palette conversion
+        self.convert_palette = config.get('convert_palette', False)
+
+        self.currentPalette = 0
+
         # Handle palette preset if provided and conversion is enabled
         palette_preset = config.get('palette_preset', None)
         if self.convert_palette and palette_preset:
             self.set_palette_by_name(palette_preset)
-        
-        # If we want to detect JPG and increase tolerance due to artifacts
-        self.detect_jpg = config.get('detect_jpg', False)
 
     def set_palette_index(self, index):
         """Set the active palette by index."""
