@@ -18,6 +18,16 @@ class PixelIt:
                 "palette_preset": (["none"] + PALETTE_NAMES, {"default": "none"},),
                 "convert_grayscale": ("BOOLEAN", {"default": False}),
                 "convert_palette": ("BOOLEAN", {"default": False}),
+                "auto_collapse_blocks": ("BOOLEAN", {"default": False}),
+                "compensate_collapse": ("BOOLEAN", {"default": False}),
+                "block_detection_tolerance": ("FLOAT", {
+                    "default": 15.0,
+                    "min": 0.0,
+                    "max": 50.0,
+                    "step": 0.1,
+                    "display": "number"
+                }),
+                "detect_jpg": ("BOOLEAN", {"default": True},),
             }
         }
 
@@ -36,7 +46,11 @@ class PixelIt:
                 target_block_size_resize: bool,
                 target_block_size: int,
                 grid: bool,
-                grid_alpha: int):
+                grid_alpha: int,
+                auto_collapse_blocks: bool,
+                compensate_collapse: bool,
+                block_detection_tolerance: float,
+                detect_jpg: bool):
         
         # Build config
         config = {
@@ -50,6 +64,10 @@ class PixelIt:
             'target_block_size': target_block_size,
             'grid': grid,
             'grid_alpha': grid_alpha,
+            'auto_collapse_blocks': auto_collapse_blocks,
+            'compensate_collapse': compensate_collapse,
+            'block_detection_tolerance': block_detection_tolerance,
+            'detect_jpg': detect_jpg,
         }
         
         # Add palette if selected
