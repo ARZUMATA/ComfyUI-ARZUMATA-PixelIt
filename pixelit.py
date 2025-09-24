@@ -204,8 +204,8 @@ class Pixelit:
         # Colors amount
         self.colors = config.get('colors', None)
 
-        # Add block_size parameter
-        self.block_size = config.get('block_size', 8)
+        # Add downscale ratio for image to bne 1/n size
+        self.downscale_ratio = config.get('downscale_ratio', 8)
 
         # Rezize image to match target block size
         self.target_block_size_resize = config.get('target_block_size_resize', False)
@@ -220,7 +220,7 @@ class Pixelit:
         self.grid_alpha = config.get('grid_alpha', 255)
 
         # If block_size is provided, calculate scale based on image dimensions
-        if self.block_size:
+        if self.downscale_ratio:
             # Scale will be set when image is loaded
             self.scale = None
 
@@ -256,8 +256,8 @@ class Pixelit:
             raise ValueError(f"Palette '{name}' not found. Available: {PALETTE_NAMES}")
         
     def set_scale(self):
-        """Set scale = block_size / 100 to"""
-        self.scale = max(0.01, min(0.5, self.block_size / 100.0))
+        """Set scale using downscale_ratio."""
+        self.scale = 1.0 / max(1, self.downscale_ratio)
         return self
 
     def convert_to_grayscale(self):
@@ -283,12 +283,12 @@ class Pixelit:
         width, height = self.image_target.size
         
         # Update our blocksize if mismatch
-        if self.target_block_size_resize and self.target_block_size != self.block_size:
-            self.block_size = self.target_block_size
+        if self.target_block_size_resize and self.target_block_size != self.downscale_ratio:
+            self.downscale_ratio = self.target_block_size
 
         # New dimensions with block size in mind
-        new_width = int(width * self.block_size)
-        new_height = int(height * self.block_size)
+        new_width = int(width * self.downscale_ratio)
+        new_height = int(height * self.downscale_ratio)
 
         # Create new blank image with calculated dimensions
         new_image = Image.new('RGB', (new_width, new_height))
@@ -305,11 +305,11 @@ class Pixelit:
                 ))
                 
                 # Scale up to target block size
-                final_block = block.resize((self.block_size, self.block_size), Image.Resampling.NEAREST)
+                final_block = block.resize((self.downscale_ratio, self.downscale_ratio), Image.Resampling.NEAREST)
                 
                 # Calculate new paste coordinates
-                paste_x = int(x * self.block_size)
-                paste_y = int(y * self.block_size)
+                paste_x = int(x * self.downscale_ratio)
+                paste_y = int(y * self.downscale_ratio)
                 
                 # Paste block at new position
                 new_image.paste(final_block, (paste_x, paste_y))
@@ -403,8 +403,8 @@ class Pixelit:
         width, height = self.image_target.size
         
         # Use block_size directly for grid cells
-        cell_width = self.block_size
-        cell_height = self.block_size
+        cell_width = self.downscale_ratio
+        cell_height = self.downscale_ratio
 
         # If alpha is provided and color is in RGB, convert it to RGBA
         if not rgb or (rgb and self.grid_alpha != 255):
